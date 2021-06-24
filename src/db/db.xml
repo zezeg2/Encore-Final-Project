@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="db">
+	<insert id="insertUser" parameterType="db.UserDataBean">
+		insert into user_general values(#{user_id}, #{user_pw}, #{user_name}, #{user_phone}, #{user_addr}, #{user_addr2},#{user_email},#{user_corp}, #{a}, #{b}, #{c},#{user_charn})
+	</insert>	
+	
+	<select id="idCheck" parameterType="String" resultType="Integer">
+		select count(*) from user_general where user_id=#{user_id}
+	</select>
+	
+	<select id="EmailCheck" parameterType="String" resultType="int">
+		select
+		count(*) from user_general where user_email=#{user_email}
+	</select>
+	
+	<select id="checkId" parameterType="String" resultType="int">
+		select count(*) from user_general where user_id=#{user_id}
+	</select>
+	
+	<select id="selectCustomer" resultType="db.UserDataBean" parameterType="String">
+		select * from user_general where user_id=#{user_id}
+	</select>
+	
+	
+	<select id="getUserEmailId" parameterType="String" resultType="db.UserDataBean">
+		select user_id from user_general where user_email=#{user_email} 
+	</select>
+	
+	<select id="getUserEmailPasswd" parameterType="String" resultType="db.UserDataBean">
+		select user_pw from user_general where user_email=#{user_email} 
+	</select>
+	
+	<update id="user_update" parameterType="db.UserDataBean">
+		update user_general set
+		user_pw=#{user_pw},
+		user_phone=#{user_phone},
+		user_addr=#{user_addr},
+		user_addr2=#{user_addr2}
+		where user_id=#{user_id}
+	</update>
+	
+	<delete id="deleteCustomer" parameterType="String">
+		delete from user_general where user_id=#{user_id}
+	</delete>
+	
+	
+	<select id="getUser" parameterType="String"
+		resultType="db.UserDataBean">
+		select * from user_general where user_id=#{user_id}
+	</select>
+	
+	
+	
+	<!--  방송영역  -->
+	
+	<select id="selectCountProduct" parameterType="String" resultType="int">
+	select count(*)
+   from product P
+	LEFT OUTER JOIN user_general C ON P.user_id = C.user_id
+    WHERE
+	C.user_id = #{user_id}
+	</select>
+	
+	
+	
+	<select id="produt_id" parameterType="int" resultType="db.Product_DataBean">
+		select * from product order by product_id desc limit 1
+	</select>
+	
+
+	<insert id="insertProduct" parameterType="db.Product_DataBean" >
+		insert into product(product_id, product_name, product_title,product_price, product_image, product_category, product_detail, product_off,user_id, aws_url, trailer_id,user_charn)
+		values( product_id, #{product_name}, #{product_title}, #{product_price},#{product_image},#{product_category},#{product_detail}, 1,#{user_id}, #{aws_url},#{trailer_id},#{user_charn} )
+		<selectKey keyProperty="product_id" resultType="int" order="AFTER">
+    		SELECT LAST_INSERT_ID()
+  		</selectKey>
+	</insert>
+	
+	
+	<select id="detialProduct" resultType="db.Product_DataBean" parameterType="int">
+		select * from product where product_id=#{product_id}
+	</select>
+	
+	
+		<select id="selectProduct" resultType="db.Product_DataBean" parameterType="String">
+		select * from product where user_id=#{user_id}
+	</select>
+	
+	<select id="livecheck" resultType="int" parameterType="String">
+		SELECT COUNT(*) FROM product WHERE product_off=1 AND user_id=#{user_id}
+	</select>
+	
+	
+		<select id="selectProduct_off" resultType="db.Product_DataBean">
+		select * from product WHERE product_off =2
+	</select>
+	
+<!--
+	
+	<select id="user_charn" parameterType="String" resultType="String">
+	SELECT U.user_charn FROM
+	product P JOIN user_general U ON P.user_id = U.user_id
+	WHERE U.user_id = #{user_id} AND P.product_off = 1 LIMIT 1
+	</select>
+	  -->
+	
+	<select id="selectMenusByCategory" parameterType="java.util.Map" resultType="db.Product_DataBean">
+		select * from product where product_category=#{product_category} and product_off=1 order by product_id desc
+	</select>
+	
+	
+	
+	<select id="selectMenus" resultType="db.Product_DataBean">
+		select * from product where product_off=1 order by product_id desc
+	</select>
+	
+	
+	
+	<update id="Product_off" parameterType="int">
+		update product SET product_off= 2 WHERE product_id=#{product_id}
+	</update>
+	
+	
+	
+	<!--  /////////////////주문기록////////////////////// -->
+	<insert id="insertOrder" parameterType="db.Order_history_DataBean">
+		insert into order_history values(order_num, (NOW()),#{order_qnt}, #{product_id}, #{user_id})
+	</insert>
+	
+	
+	
+	
+	
+		
+	<update id="updateUser_address" parameterType="java.util.Map">
+		update user_general set
+		user_addr=#{user_addr},
+		user_addr2=#{user_addr2}
+		where user_id=#{user_id}
+	</update>
+	
+	
+	
+	
+	<!-- ////////////판매자 주문기록/////////// -->
+	<select id="Order_confirmation" parameterType="String" resultType="db.Order_history_select_DataBean">
+	SELECT O.order_num , C.user_name, C.user_addr, P.product_price, O.order_qnt, P.product_name, O.order_date
+	FROM order_history O
+	LEFT OUTER JOIN user_general C ON O.user_id = C.user_id
+	LEFT OUTER JOIN product P ON O.product_id = P.product_id
+    WHERE
+	P.user_id = #{user_id}
+	</select>
+
+	
+	<!-- ////////////사용자 주문기록/////////// -->
+	<select id="Select_order_history" parameterType="String" resultType="db.Order_history_select_DataBean">
+	SELECT O.order_num , C.user_name, C.user_addr,P.product_price, O.order_qnt, P.product_name, O.order_date, P.product_id
+    FROM order_history O
+	LEFT OUTER JOIN user_general C ON O.user_id = C.user_id
+	LEFT OUTER JOIN product P ON O.product_id = P.product_id
+    WHERE
+	C.user_id = #{user_id}
+	</select>
+	
+	
+	
+	<select id="detailed_order_history" parameterType="int" resultType="db.Order_history_select_DataBean">
+	SELECT O.order_num , C.user_name, C.user_addr, C.user_addr2,P.product_price, O.order_qnt, P.product_name, O.order_date, O.product_id
+	FROM order_history O
+	LEFT OUTER JOIN user_general C ON O.user_id = C.user_id
+	LEFT OUTER JOIN product P ON O.product_id = P.product_id
+    WHERE
+	O.order_num = #{order_num}
+	</select>
+	
+	
+	
+	<select id="selectCountOrders" parameterType="String" resultType="int">
+	SELECT count(*)
+    FROM order_history O
+	LEFT OUTER JOIN user_general C ON O.user_id = C.user_id
+	LEFT OUTER JOIN product P ON O.product_id = P.product_id
+    WHERE
+	C.user_id = #{user_id}
+	</select>
+	
+	
+	
+	
+	<select id="selectconfirmation" parameterType="String" resultType="int">
+	SELECT count(*)
+	FROM order_history O
+	LEFT OUTER JOIN user_general C ON O.user_id = C.user_id
+	LEFT OUTER JOIN product P ON O.product_id = P.product_id
+    WHERE
+	P.user_id = #{user_id}
+	</select>
+	
+	
+	
+	
+	
+	
+	<!-- /////////////라이브 예정 페이지////////////// -->
+	<insert id="insertTrailer" parameterType="db.Trailer_DataBean" >
+		insert into trailer(trailer_id, trailer_name,trailer_title, trailer_price, trailer_image,trailer_aws_url,trailer_detail, trailer_launchdate, trailer_updatedate, user_id)
+		values( trailer_id, #{trailer_name},#{trailer_title}, #{trailer_price},#{trailer_image},#{trailer_aws_url},#{trailer_detail}, #{trailer_launchdate}, (NOW()), #{user_id})
+		<selectKey keyProperty="trailer_id" resultType="int" order="AFTER">
+    		SELECT LAST_INSERT_ID()
+  		</selectKey>
+	</insert>
+	
+	<select id=	"product_trailer_select" resultType="db.Trailer_DataBean" parameterType="int">
+		select * from trailer where trailer_id=#{trailer_id}
+	</select>
+	
+	
+
+	
+	<select id=	"trailer_select" resultType="db.Trailer_DataBean" parameterType="String">
+		select * from trailer where user_id=#{user_id}
+	</select>
+	
+	
+	<select id="selectCounttrailer" parameterType="String" resultType="int">
+	select count(*)
+   from trailer P
+	LEFT OUTER JOIN user_general C ON P.user_id = C.user_id
+    WHERE
+	C.user_id = #{user_id}
+	</select>
+	
+	
+	<delete id="trailer_delete" parameterType="int">
+		DELETE from trailer WHERE trailer_id = #{trailer_id}
+	</delete> 
+	
+	
+		<delete id="product_chat_delete" parameterType="int">
+		DELETE from product_chat WHERE product_id = #{product_id}
+	</delete> 
+	
+	
+	
+	
+		
+	
+	
+		<select id="detailTrailer" resultType="db.Trailer_DataBean" parameterType="int">
+		select * from trailer where trailer_id=#{trailer_id}
+	</select>
+
+
+		<select id="selectTrailer" resultType="db.Trailer_DataBean" parameterType="String">
+		select * from trailer where user_id=#{user_id}
+	</select>
+
+
+
+<!--
+	<select id="selectMenusByCategory" parameterType="java.util.Map" resultType="db.Product_DataBean">
+		select * from trailer where trailer_category=#{trailer_category} order by product_id desc
+	</select>
+-->
+
+
+	<select id="allTrailer" resultType="db.Trailer_DataBean">
+		select * from trailer order by trailer_updatedate desc
+	</select>
+	
+	
+
+
+
+	<select id="updateTrailerDate" resultType="db.Trailer_DataBean">
+		update trailer SET trailer_updatedate=NOW() where user_id=#{user_id}
+
+		select * from trailer order by trailer_updatedate desc
+	</select>
+
+
+
+	<!-- <delete id="deleteTraier" parameterType="String">
+		delete from trailer where user_id=#{user_id}
+	</delete> -->
+	
+	
+	
+	
+	<!--  Ajax 댓글 -->
+	
+	<insert id="insertComment" parameterType="db.Comment_DataBean">
+		INSERT INTO trailer_comment(comment_id, comment_content, comment_date,user_id,trailer_id)
+values(comment_id, #{comment_content}, NOW(), #{user_id}, #{trailer_id})
+
+	</insert>
+
+	<select id="getComment" parameterType="int" resultType="db.Comment_DataBean">
+		select * from trailer_comment where trailer_id=#{trailer_id} order by user_id desc
+	</select>
+
+	<update id="updateComment" parameterType="db.Comment_DataBean">
+		update trailer_comment set comment_content = #{comment_content} where comment_id = #{comment_id}
+	</update>
+
+	<delete id="deleteComment" parameterType="int">
+		delete from trailer_comment where comment_id = #{comment_id}
+	</delete>
+	
+	
+		<!--  Ajax 채팅 -->
+			
+	<insert id="insertChat_comment" parameterType="db.Product_chat_DataBean">
+		INSERT INTO product_chat(chat_id, chat_content, chat_date,user_id, product_id)
+values(chat_id, #{chat_content}, NOW(), #{user_id}, #{product_id})
+
+	</insert>
+
+	<select id="getProduct_chat" parameterType="int" resultType="db.Product_chat_DataBean">
+		SELECT *FROM (select * FROM product_chat where product_id=#{product_id} order by chat_id desc LIMIT 20)as reverse order by chat_id asc
+	</select>
+		
+		
+		
+		
+	<!-- 검색 기능 -->
+	
+	<select id="findProductByKeyword" parameterType="String" resultType="db.Product_DataBean">
+		SELECT * FROM product WHERE product_off=1 and product_detail LIKE CONCAT('%',#{keyword},'%')
+		
+	</select>
+	
+	<select id="findProductByUser" parameterType="String" resultType="db.Product_DataBean">
+		select * from product where product_off=1 and user_id LIKE CONCAT('%',#{keyword},'%')
+	</select>
+	
+	
+	<select id="findProductTitle" parameterType="String" resultType="db.Product_DataBean">
+		SELECT * FROM product WHERE product_off=1 and product_title LIKE CONCAT('%',#{keyword},'%')
+		
+	</select>
+	
+	<select id="findTrailerByKeyword" parameterType="String" resultType="db.Trailer_DataBean">
+		SELECT * FROM trailer WHERE trailer_detail LIKE CONCAT('%',#{keyword},'%')
+		
+	</select>
+	
+	<select id="findTrailerByUser" parameterType="String" resultType="db.Trailer_DataBean">
+		select * from trailer where user_id LIKE CONCAT('%',#{keyword},'%')
+	</select>
+	
+	
+	<select id="findTrailerTitle" parameterType="String" resultType="db.Trailer_DataBean">
+		SELECT * FROM trailer WHERE trailer_title LIKE CONCAT('%',#{keyword},'%')
+		
+	</select>
+	
+	
+	
+	
+	
+	<!--  리뷰 작성  -->
+	<insert id="insertReview" parameterType="db.Product_review_DataBean">
+		INSERT INTO product_review (review_id, review_content, review_date,review_scope,review_image,user_id,product_id)
+values(review_id, #{review_content}, NOW(),#{review_scope}, #{review_image}, #{user_id}, #{product_id})
+</insert>
+
+	<select id="getReview" parameterType="int" resultType="db.Product_review_DataBean">
+		select * from product_review where product_id=#{product_id} order by user_id desc
+	</select>
+
+	<update id="updateReview" parameterType="db.Product_review_DataBean">
+		update product_review set review_content = #{review_content} where review_id = #{review_id}
+	</update>
+
+	<delete id="deleteReview" parameterType="int">
+		delete from product_review where review_id = #{review_id}
+	</delete>
+	
+<select id="order_count" parameterType="java.util.Map" resultType="int">
+SELECT COUNT(*) FROM order_history WHERE product_id = #{product_id} AND user_id= #{user_id}
+</select>
+</mapper>

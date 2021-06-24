@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="db">
+	<insert id="insertUser" parameterType="db.UserDataBean">
+		insert into user_general values(#{user_id}, #{user_pw}, #{user_name}, #{user_phone}, #{user_addr}, #{user_addr2},#{user_email},#{user_corp})
+	</insert>	
+	
+	<select id="idCheck" parameterType="String" resultType="Integer">
+		select count(*) from user_general where user_id=#{user_id}
+	</select>
+	
+	<select id="EmailCheck" parameterType="String" resultType="int">
+		select
+		count(*) from user_general where user_email=#{user_email}
+	</select>
+	
+	<select id="checkId" parameterType="String" resultType="int">
+		select count(*) from user_general where user_id=#{user_id}
+	</select>
+	
+	<select id="selectCustomer" resultType="db.UserDataBean" parameterType="String">
+		select * from user_general where user_id=#{user_id}
+	</select>
+	
+	
+	<select id="getUserEmailId" parameterType="String" resultType="db.UserDataBean">
+		select user_id from user_general where user_email=#{user_email} 
+	</select>
+	
+	<select id="getUserEmailPasswd" parameterType="String" resultType="db.UserDataBean">
+		select user_pw from user_general where user_email=#{user_email} 
+	</select>
+	
+	<update id="user_update" parameterType="db.UserDataBean">
+		update user_general set
+		user_pw=#{user_pw},
+		user_phone=#{user_phone},
+		user_addr=#{user_addr},
+		user_addr2=#{user_addr2}
+		where user_id=#{user_id}
+	</update>
+	
+	<delete id="deleteCustomer" parameterType="String">
+		delete from user_general where user_id=#{user_id}
+	</delete>
+	
+	
+	<select id="getUser" parameterType="String"
+		resultType="db.UserDataBean">
+		select * from user_general where user_id=#{user_id}
+	</select>
+	
+	
+	
+	
+	<select id="produt_id" parameterType="int" resultType="db.Product_DataBean">
+		select * from product order by product_id desc limit 1
+	</select>
+	
+
+	<insert id="insertProduct" parameterType="db.Product_DataBean" >
+		insert into product(product_id, product_name, product_price, product_image, product_category, product_detail, user_id)
+		values( product_id, #{product_name}, #{product_price},#{product_image},#{product_category},#{product_detail}, #{user_id} )
+		<selectKey keyProperty="product_id" resultType="int" order="AFTER">
+    		SELECT LAST_INSERT_ID()
+  		</selectKey>
+	</insert>
+	
+	
+	<select id="detialProduct" resultType="db.Product_DataBean" parameterType="int">
+		select * from product where product_id=#{product_id}
+	</select>
+	
+	
+	
+	<select id="selectMenusByCategory" parameterType="java.util.Map" resultType="db.Product_DataBean">
+		select * from product where product_category=#{product_category} order by product_id desc
+	</select>
+	
+	
+	
+	<select id="selectMenus" resultType="db.Product_DataBean">
+		select * from product order by product_id desc
+	</select>
+	
+	
+	
+	<delete id="deletProduct" parameterType="String">
+		delete from product where user_id=#{user_id}
+	</delete>
+</mapper>
